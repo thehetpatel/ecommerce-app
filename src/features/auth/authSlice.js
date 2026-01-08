@@ -1,20 +1,22 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { loginUserApi } from '../../services/api'
+import { login as loginApi } from '../../services/api'
 
-export const loginUser = createAsyncThunk(
-  'auth/loginUser',
-  async (credentials, { rejectWithValue }) => {
+export const login = createAsyncThunk(
+  'auth/login',
+  async (creds, { rejectWithValue }) => {
     try {
-      return await loginUserApi(credentials)
-    } catch (error) {
-      return rejectWithValue(error.message)
+      const data = await loginApi(creds)
+      localStorage.setItem('token', data.token) // Side effect here is cleaner for simple apps
+      return data
+    } catch (err) {
+      return rejectWithValue(err.message)
     }
   }
 )
 
 const initialState = {
   user: null,
-  token: null,
+  token: localStorage.getItem('token') || null,
   isLoading: false,
   error: null,
 }
@@ -31,21 +33,19 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(loginUser.pending, (state) => {
+      .addCase(login.pending, (state) => {
         state.isLoading = true
         state.error = null
       })
-      .addCase(loginUser.fulfilled, (state, action) => {
+      .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false
         state.user = action.payload
         state.token = action.payload.token
-        localStorage.setItem('token', action.payload.token)
       })
-      .addCase(loginUser.rejected, (state, action) => {
+      .addCase(login.rejected, (state, action) => {
         state.isLoading = false
-        state.error = action.payload || action.error.message
-        })
-
+        state.error = action.payload
+      })
   },
 })
 

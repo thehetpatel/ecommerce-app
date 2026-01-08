@@ -1,45 +1,41 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import {
-  fetchProductsApi,
-  fetchCategoriesApi,
-  fetchProductsByCategoryApi,
-} from '../../services/api'
+import { getProducts, getCategories, getProductsByCategory } from '../../services/api'
 
-export const fetchProducts = createAsyncThunk(
-  'products/fetchProducts',
+export const loadProducts = createAsyncThunk(
+  'products/loadAll',
   async ({ limit, skip }, { rejectWithValue }) => {
     try {
-      return await fetchProductsApi(limit, skip)
-    } catch (error) {
-      return rejectWithValue(error.message)
+      return await getProducts(limit, skip)
+    } catch (err) {
+      return rejectWithValue(err.message)
     }
   }
 )
 
-export const fetchCategories = createAsyncThunk(
-  'products/fetchCategories',
+export const loadCategories = createAsyncThunk(
+  'products/loadCategories',
   async (_, { rejectWithValue }) => {
     try {
-      return await fetchCategoriesApi()
-    } catch (error) {
-      return rejectWithValue(error.message)
+      return await getCategories()
+    } catch (err) {
+      return rejectWithValue(err.message)
     }
   }
 )
 
-export const fetchProductsByCategory = createAsyncThunk(
-  'products/fetchByCategory',
-  async (category, { rejectWithValue }) => {
+export const loadCategoryProducts = createAsyncThunk(
+  'products/loadByCategory',
+  async (slug, { rejectWithValue }) => {
     try {
-      return await fetchProductsByCategoryApi(category)
-    } catch (error) {
-      return rejectWithValue(error.message)
+      return await getProductsByCategory(slug)
+    } catch (err) {
+      return rejectWithValue(err.message)
     }
   }
 )
 
 const initialState = {
-  products: [],
+  items: [],
   categories: [],
   total: 0,
   isLoading: false,
@@ -52,21 +48,37 @@ const productsSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchProducts.pending, (state) => {
+      // General Products Load
+      .addCase(loadProducts.pending, (state) => {
         state.isLoading = true
+        state.error = null
       })
-      .addCase(fetchProducts.fulfilled, (state, action) => {
+      .addCase(loadProducts.fulfilled, (state, action) => {
         state.isLoading = false
-        state.products = action.payload.products
+        state.items = action.payload.products
         state.total = action.payload.total
       })
-      .addCase(fetchCategories.fulfilled, (state, action) => {
+      .addCase(loadProducts.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.payload
+      })
+      
+      // Categories
+      .addCase(loadCategories.fulfilled, (state, action) => {
         state.categories = action.payload
       })
-      .addCase(fetchProductsByCategory.fulfilled, (state, action) => {
-        state.products = action.payload.products
+
+      // Category Filter
+      .addCase(loadCategoryProducts.pending, (state) => {
+        state.isLoading = true
+        state.error = null
       })
-      .addCase(fetchProducts.rejected, (state, action) => {
+      .addCase(loadCategoryProducts.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.items = action.payload.products
+        state.total = action.payload.total
+      })
+      .addCase(loadCategoryProducts.rejected, (state, action) => {
         state.isLoading = false
         state.error = action.payload
       })

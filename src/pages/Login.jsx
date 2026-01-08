@@ -1,82 +1,67 @@
 import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { loginUser } from '../features/auth/authSlice'
+import { login } from '../features/auth/authSlice'
 
 function Login() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
-
+  
   const { isLoading, error, token } = useSelector((state) => state.auth)
+  
+  const [username, setUsername] = useState('kminchelle') // Pre-fill for easier testing (common dev habit)
+  const [password, setPassword] = useState('0lelplR')
 
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-
-  // 🔹 Auto-redirect if already logged in (page refresh case)
   useEffect(() => {
-    const storedToken = localStorage.getItem('token')
-    if (storedToken) {
-      navigate('/home', { replace: true })
-    }
-  }, [navigate])
-
-  // 🔹 Redirect after successful login
-  useEffect(() => {
-    if (token) {
-      navigate('/home', { replace: true })
-    }
+    if (token) navigate('/home', { replace: true })
   }, [token, navigate])
 
-  const handleSubmit = (e) => {
+  const handleLogin = (e) => {
     e.preventDefault()
+    if (!username || !password) return
 
-    dispatch(
-      loginUser({
-        username: username.trim(),
-        password: password.trim(),
-      })
-    )
+    dispatch(login({ username, password }))
   }
 
   return (
-    <div style={{ maxWidth: '400px', margin: '2rem auto' }}>
-      <h2>Login</h2>
+    <div style={{ maxWidth: '360px', margin: '4rem auto', textAlign: 'center' }}>
+      <h1>Welcome Back</h1>
+      
+      <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          style={{ padding: '8px' }}
+        />
+        
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          style={{ padding: '8px' }}
+        />
 
-      <form onSubmit={handleSubmit}>
-        <div>
-          <input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-
-        <div style={{ marginTop: '1rem' }}>
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
+        <button 
+          type="submit" 
           disabled={isLoading}
-          style={{ marginTop: '1rem' }}
+          style={{ padding: '10px', cursor: 'pointer' }}
         >
-          {isLoading ? 'Logging in...' : 'Login'}
+          {isLoading ? 'Signing in...' : 'Login'}
         </button>
       </form>
 
       {error && (
-        <p style={{ color: 'red', marginTop: '1rem' }}>
-          {error}
-        </p>
+        <div style={{ color: 'red', marginTop: '1rem', fontSize: '0.9rem' }}>
+          Login failed: {error}
+        </div>
       )}
+      
+      <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '2rem' }}>
+        Tip: Use 'kminchelle' / '0lelplR' to test.
+      </p>
     </div>
   )
 }

@@ -1,81 +1,48 @@
-export const loginUserApi = async (credentials) => {
-  // ---------------------------------------------------------
-  // DEMO / INTERVIEW MOCK LOGIC
-  // ---------------------------------------------------------
-  // Explicitly separate demo auth from production auth
-  if (credentials.username === 'demo' && credentials.password === 'demo') {
+const BASE_URL = 'https://dummyjson.com'
+
+export const login = async (creds) => {
+  // Dev bypass for testing
+  if (creds.username === 'demo' && creds.password === 'demo') {
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve({
           id: 999,
           username: 'demo',
-          email: 'demo@example.com',
+          email: 'demo@test.com',
           firstName: 'Demo',
           lastName: 'User',
-          gender: 'neutral',
-          image: 'https://dummyjson.com/icon/emilys/128', // Use valid placeholder
-          token: 'mock-jwt-token-' + Date.now(),
+          image: 'https://dummyjson.com/icon/emilys/128',
+          token: `mock-token-${Date.now()}`,
         })
-      }, 500) // Simulate network delay
+      }, 800)
     })
   }
 
-  // ---------------------------------------------------------
-  // REAL API LOGIC
-  // ---------------------------------------------------------
-  const response = await fetch('https://dummyjson.com/auth/login', {
+  const res = await fetch(`${BASE_URL}/auth/login`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      username: credentials.username,
-      password: credentials.password,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(creds),
   })
 
-  const data = await response.json()
-
-  if (!response.ok) {
-    throw new Error(data.message || 'Invalid credentials')
-  }
-
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.message || 'Login failed')
   return data
 }
 
-
-export const fetchProductsApi = async (limit = 10, skip = 0) => {
-  const response = await fetch(
-    `https://dummyjson.com/products?limit=${limit}&skip=${skip}`
-  )
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch products')
-  }
-
-  return response.json()
+export const getProducts = async (limit = 10, skip = 0) => {
+  const res = await fetch(`${BASE_URL}/products?limit=${limit}&skip=${skip}`)
+  if (!res.ok) throw new Error('Could not load products')
+  return res.json()
 }
 
-export const fetchCategoriesApi = async () => {
-  const response = await fetch(
-    'https://dummyjson.com/products/categories'
-  )
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch categories')
-  }
-
-  return response.json()
+export const getCategories = async () => {
+  const res = await fetch(`${BASE_URL}/products/categories`)
+  if (!res.ok) throw new Error('Category fetch failed')
+  return res.json()
 }
 
-export const fetchProductsByCategoryApi = async (category) => {
-  const response = await fetch(
-    `https://dummyjson.com/products/category/${category}`
-  )
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch category products')
-  }
-
-  return response.json()
+export const getProductsByCategory = async (slug) => {
+  const res = await fetch(`${BASE_URL}/products/category/${slug}`)
+  if (!res.ok) throw new Error('Failed to load category items')
+  return res.json()
 }
