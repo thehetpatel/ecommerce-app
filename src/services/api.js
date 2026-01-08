@@ -1,16 +1,21 @@
-const BASE_URL = 'https://dummyjson.com'
-
 export const loginUserApi = async (credentials) => {
-  const response = await fetch(`${BASE_URL}/auth/login`, {
+  const response = await fetch('https://dummyjson.com/auth/login', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(credentials),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include', 
+    body: JSON.stringify({
+      username: credentials.username,
+      password: credentials.password,
+    }),
   })
 
+  const data = await response.json()
+
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Login failed')
+    throw new Error(data.message || 'Invalid credentials')
   }
 
-  return response.json()
+  return data
 }
